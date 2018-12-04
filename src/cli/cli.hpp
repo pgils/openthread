@@ -187,6 +187,7 @@ private:
         kDefaultJoinerTimeout = 120, ///< Default timeout for Joiners, in seconds.
     };
 
+    void ToggleLed(int argc, char *argv[]);
     void ProcessHelp(int argc, char *argv[]);
     void ProcessAutoStart(int argc, char *argv[]);
     void ProcessBufferInfo(int argc, char *argv[]);

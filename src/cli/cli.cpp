@@ -47,6 +47,7 @@
 #include <openthread/icmp6.h>
 #include <openthread/joiner.h>
 #include <openthread/link.h>
+#include <openthread/platform/switchtest.h>
 #if OPENTHREAD_CONFIG_ENABLE_TIME_SYNC
 #include <openthread/network_time.h>
 #endif
@@ -107,6 +108,7 @@ namespace ot {
 namespace Cli {
 
 const struct Command Interpreter::sCommands[] = {
+    {"toggleled", &Interpreter::ToggleLed},
     {"help", &Interpreter::ProcessHelp},
     {"autostart", &Interpreter::ProcessAutoStart},
     {"bufferinfo", &Interpreter::ProcessBufferInfo},
@@ -419,6 +421,19 @@ otError Interpreter::ParseUnsignedLong(char *argv, unsigned long &value)
     value = strtoul(argv, &endptr, 0);
     return (*endptr == '\0') ? OT_ERROR_NONE : OT_ERROR_PARSE;
 }
+
+void Interpreter::ToggleLed(int argc, char *argv[])
+{
+    OT_UNUSED_VARIABLE(argc);
+    OT_UNUSED_VARIABLE(argv);
+
+    if (0 == otToggleLed())
+    {
+      mServer->OutputFormat("Toggle Led\r\n");
+    }
+
+}
+
 
 void Interpreter::ProcessHelp(int argc, char *argv[])
 {
