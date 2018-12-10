@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2016, The OpenThread Authors.
+ *  Copyright (c) 2017, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -26,68 +26,45 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <assert.h>
-#include <openthread-core-config.h>
-#include <openthread/config.h>
-
-#include <openthread/cli.h>
-#include <openthread/diag.h>
-#include <openthread/tasklet.h>
-#include <openthread/thread.h>
-#include <openthread/platform/logging.h>
-
-#include "openthread-system.h"
-
-void otTaskletsSignalPending(otInstance *aInstance)
-{
-    (void)aInstance;
-}
-
-int main(int argc, char *argv[])
-{
-    otInstance *instance;
-
-pseudo_reset:
-
-    otSysInit(argc, argv);
-    instance = otInstanceInitSingle();
-    assert(instance);
-
-    otCliUartInit(instance);
-
-#if OPENTHREAD_ENABLE_DIAG
-    otDiagInit(instance);
-#endif
-
-    while (!otSysPseudoResetWasRequested())
-    {
-        otTaskletsProcess(instance);
-        otSysProcessDrivers(instance);
-    }
-
-    otInstanceFinalize(instance);
-
-    otIp6SetEnabled(instance, true);
-    otThreadSetAutoStart(instance, true);
-
-    goto pseudo_reset;
-
-    return 0;
-}
-
-/*
- * Provide, if required an "otPlatLog()" function
+/**
+ * @file
+ *   This file contains definitions for a simple CLI CoAP server and client.
  */
-#if OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_APP
-void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, ...)
-{
-    OT_UNUSED_VARIABLE(aLogLevel);
-    OT_UNUSED_VARIABLE(aLogRegion);
-    OT_UNUSED_VARIABLE(aFormat);
 
-    va_list ap;
-    va_start(ap, aFormat);
-    otCliPlatLogv(aLogLevel, aLogRegion, aFormat, ap);
-    va_end(ap);
-}
-#endif
+#ifndef IOT_UDP_HPP_
+#define IOT_UDP_HPP_
+
+#include "openthread-core-config.h"
+
+#include <openthread/udp.h>
+
+namespace ot {
+namespace Cli {
+
+class IotUdp
+{
+public:
+    /**
+     * Constructor
+     *
+     */
+    explicit IotUdp(otInstance *instance);
+
+private:
+
+    otError IotUdpBind();
+    otError IotUdpClose();
+    otError IotUdpOpen();
+    otError IotUdpSend(char *argv);
+
+    static void HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo);
+    void        HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo);
+
+    otInstance *instance;
+    otUdpSocket mSocket;
+};
+
+} // namespace Cli
+} // namespace ot
+
+#endif // IOT_UDP_HPP_
