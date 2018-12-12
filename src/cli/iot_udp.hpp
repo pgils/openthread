@@ -50,13 +50,13 @@ public:
      */
     explicit IotUdp(otInstance *instance);
 
-private:
-
+public:
     otError IotUdpBind();
     otError IotUdpClose();
     otError IotUdpOpen();
     otError IotUdpSend(char *argv);
 
+private:
     static void HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo);
     void        HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo);
 

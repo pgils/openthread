@@ -26,6 +26,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 #include <assert.h>
 #include <openthread-core-config.h>
 #include <openthread/config.h>
@@ -35,42 +36,98 @@
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
 #include <openthread/platform/logging.h>
+#include <cstring>  // memset
 
+#include "UdpHandler.h"
+#include "Gpio.h"
 #include "openthread-system.h"
+
+
 
 void otTaskletsSignalPending(otInstance *aInstance)
 {
     (void)aInstance;
 }
 
+static void ThreadStateChangedCallback(uint32_t flags, void * p_context)
+{
+    otDeviceRole currentRole = otThreadGetDeviceRole(
+        reinterpret_cast<otInstance*>(p_context));
+    switch(currentRole)
+    {
+      case OT_DEVICE_ROLE_CHILD:
+        Gpio::SetRgbLed(LED2_R);
+        break;
+      case OT_DEVICE_ROLE_ROUTER:
+        Gpio::SetRgbLed(LED2_G);
+        break;
+      case OT_DEVICE_ROLE_LEADER:
+        Gpio::SetRgbLed(LED2_B);
+        break;
+      default:
+        break;
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    otError error = OT_ERROR_NONE;
     otInstance *instance;
+    UdpHandler *handler;
 
-pseudo_reset:
+    Gpio::InitLeds();
+    Gpio::InitButton();
 
-    otSysInit(argc, argv);
-    instance = otInstanceInitSingle();
-    assert(instance);
-
-    otCliUartInit(instance);
-
-#if OPENTHREAD_ENABLE_DIAG
-    otDiagInit(instance);
-#endif
-
-    while (!otSysPseudoResetWasRequested())
+    while (true)
     {
-        otTaskletsProcess(instance);
-        otSysProcessDrivers(instance);
+        otSysInit(argc, argv);
+        instance = otInstanceInitSingle();
+        assert(instance);
+
+        otThreadSetEnabled(instance, false);  // disable thread to set configs
+
+        handler = new UdpHandler(instance);
+
+        error = otLinkSetChannel(instance, static_cast<uint8_t>(11));
+        assert(OT_ERROR_NONE == error);
+
+        error = otLinkSetPanId(instance, static_cast<otPanId>(0x5678));
+        assert(OT_ERROR_NONE == error);
+
+        otLinkModeConfig mode;
+        memset(&mode, 0, sizeof(mode));
+
+        mode.mRxOnWhenIdle       = true;
+        mode.mSecureDataRequests = true;
+        mode.mDeviceType         = true;
+        mode.mNetworkData        = true;
+
+        error = otThreadSetLinkMode(instance, mode);
+        assert(OT_ERROR_NONE == error);
+
+        otThreadSetChildTimeout(instance, static_cast<uint32_t>(10));
+
+        error = otIp6SetEnabled(instance, true);        // ifconfig up
+        assert(OT_ERROR_NONE == error);
+        error = otThreadSetEnabled(instance, true);
+        assert(OT_ERROR_NONE == error);
+
+        handler->Open();                        // udp open / bind
+        // handler->SendToggle();                  // udp send multicast "toggleled"
+
+
+        otSetStateChangedCallback(instance,
+            ThreadStateChangedCallback, instance);
+
+        while (!otSysPseudoResetWasRequested())
+        {
+            otTaskletsProcess(instance);
+            otSysProcessDrivers(instance);
+        }
+
+        otInstanceFinalize(instance);
+        delete handler;
     }
-
-    otInstanceFinalize(instance);
-
-    otIp6SetEnabled(instance, true);
-    otThreadSetAutoStart(instance, true);
-
-    goto pseudo_reset;
 
     return 0;
 }

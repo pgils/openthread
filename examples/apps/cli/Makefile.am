@@ -36,6 +36,10 @@ CPPFLAGS_COMMON                                                       += \
     -I$(top_srcdir)/include                                              \
     -I$(top_srcdir)/src/core                                             \
     -I$(top_srcdir)/examples/platforms                                   \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/dependencies                                             \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/libraries/app_error                                      \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx                                                     \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx/hal                                                 \
     $(NULL)
 
 LDADD_COMMON                                                          += \
@@ -48,7 +52,9 @@ LIBTOOLFLAGS_COMMON                                                   += \
     $(NULL)
 
 SOURCES_COMMON                                                        += \
-    main.c                                                               \
+    main.cpp                                                             \
+    UdpHandler.cpp                                                       \
+    Gpio.cpp                                                             \
     $(NULL)
 
 if OPENTHREAD_ENABLE_BUILTIN_MBEDTLS
