@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 {
     otError error = OT_ERROR_NONE;
     otInstance *instance;
-    UdpHandler *handler;
+    UdpHandler *udpHandler;
 
     Gpio::InitLeds();
     Gpio::InitButton(&buttonPressHandler);
@@ -89,10 +89,9 @@ int main(int argc, char *argv[])
         otSysInit(argc, argv);
         instance = otInstanceInitSingle();
         assert(instance);
+        udpHandler = new UdpHandler(instance);
 
         otThreadSetEnabled(instance, false);  // disable thread to set configs
-
-        handler = new UdpHandler(instance);
 
         error = otLinkSetChannel(instance, static_cast<uint8_t>(11));
         assert(OT_ERROR_NONE == error);
@@ -118,9 +117,7 @@ int main(int argc, char *argv[])
         error = otThreadSetEnabled(instance, true);
         assert(OT_ERROR_NONE == error);
 
-        handler->Open();                        // udp open / bind
-        // handler->SendToggle();                  // udp send multicast "toggleled"
-
+        udpHandler->Open();                        // udp open / bind
 
         otSetStateChangedCallback(instance,
             ThreadStateChangedCallback, instance);
@@ -132,7 +129,7 @@ int main(int argc, char *argv[])
         }
 
         otInstanceFinalize(instance);
-        delete handler;
+        delete udpHandler;
     }
 
     return 0;
