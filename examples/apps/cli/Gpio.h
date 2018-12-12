@@ -17,7 +17,8 @@
 #define LED2_B         NRF_GPIO_PIN_MAP(0, 12)
 #define BUTTON_1       NRF_GPIO_PIN_MAP(1, 6)
 
-#define LEDS_LIST { LED1_G, LED2_R, LED2_G, LED2_B }
+#define LEDS_LIST   { LED1_G, LED2_R, LED2_G, LED2_B }
+#define RGB_LIST    { LED2_G, LED2_R, LED2_B }
 #define LEDCOUNT 4
 
 class Gpio

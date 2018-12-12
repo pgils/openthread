@@ -7,10 +7,11 @@
 
 #include "Gpio.h"
 
-static const uint8_t ledList[LEDCOUNT] = LEDS_LIST;
 
 void Gpio::InitLeds()
 {
+    static const uint8_t ledList[LEDCOUNT] = LEDS_LIST;
+
     for (int i=0; i < LEDCOUNT; i++)
     {
         nrf_gpio_cfg_output(ledList[i]);
@@ -49,8 +50,10 @@ void Gpio::ToggleLed1()
 
 void Gpio::SetRgbLed(uint32_t led)
 {
-    for (int i=0; i < LEDCOUNT; i++)
+    static const uint8_t rgbList[3] = { LED2_R, LED2_G, LED2_B };
+
+    for (int i=0; i < 3; i++)
     {
-        nrf_gpio_pin_write(ledList[i], (led != ledList[i]));
+        nrf_gpio_pin_write(rgbList[i], (led != rgbList[i]));
     }
 }

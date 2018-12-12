@@ -72,7 +72,7 @@ static void ThreadStateChangedCallback(uint32_t flags, void * p_context)
 
 void buttonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    nrfx_gpiote_out_toggle(LED1_G);
+    Gpio::ToggleLed1();
 }
 
 int main(int argc, char *argv[])
