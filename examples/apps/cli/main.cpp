@@ -44,6 +44,7 @@
 #include <nrfx_gpiote.h>
 
 
+UdpHandler *udpHandler = NULL;
 
 void otTaskletsSignalPending(otInstance *aInstance)
 {
@@ -72,14 +73,16 @@ static void ThreadStateChangedCallback(uint32_t flags, void * p_context)
 
 void buttonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    Gpio::ToggleLed1();
+    if (NULL != udpHandler)
+    {
+        udpHandler->SendToggle();
+    }
 }
 
 int main(int argc, char *argv[])
 {
     otError error = OT_ERROR_NONE;
     otInstance *instance;
-    UdpHandler *udpHandler;
 
     Gpio::InitLeds();
     Gpio::InitButton(&buttonPressHandler);

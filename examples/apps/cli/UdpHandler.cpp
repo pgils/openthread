@@ -16,7 +16,7 @@
 
 #include <hal/nrf_gpio.h>
 
-#define LED1_G         NRF_GPIO_PIN_MAP(0,6)
+#define LED1_G         NRF_GPIO_PIN_MAP(0, 6)
 
 UdpHandler::UdpHandler(otInstance *instance)
 {
