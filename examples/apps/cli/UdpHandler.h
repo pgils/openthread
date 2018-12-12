@@ -20,6 +20,10 @@ public:
     explicit UdpHandler(otInstance *instance);
     virtual ~UdpHandler();
 
+private:
+    UdpHandler(const UdpHandler&);
+    UdpHandler& operator=(UdpHandler const&);
+
 public:
     otError Open();
     otError SendToggle();

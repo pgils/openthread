@@ -27,21 +27,17 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
+#include <cstring>  // memset
 #include <openthread-core-config.h>
 #include <openthread/config.h>
-
-#include <openthread/cli.h>
-#include <openthread/diag.h>
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
-#include <openthread/platform/logging.h>
-#include <cstring>  // memset
+#include <nrfx_gpiote.h>
 
+#include "openthread-system.h"
 #include "UdpHandler.h"
 #include "Gpio.h"
-#include "openthread-system.h"
-#include <nrfx_gpiote.h>
 
 
 UdpHandler *udpHandler = NULL;
@@ -82,7 +78,6 @@ void buttonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 int main(int argc, char *argv[])
 {
     otError error = OT_ERROR_NONE;
-    otInstance *instance;
 
     Gpio::InitLeds();
     Gpio::InitButton(&buttonPressHandler);
@@ -90,8 +85,11 @@ int main(int argc, char *argv[])
     while (true)
     {
         otSysInit(argc, argv);
+
+        otInstance *instance;
         instance = otInstanceInitSingle();
         assert(instance);
+
         udpHandler = new UdpHandler(instance);
 
         otThreadSetEnabled(instance, false);  // disable thread to set configs
@@ -137,20 +135,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-/*
- * Provide, if required an "otPlatLog()" function
- */
-#if OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_APP
-void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, ...)
-{
-    OT_UNUSED_VARIABLE(aLogLevel);
-    OT_UNUSED_VARIABLE(aLogRegion);
-    OT_UNUSED_VARIABLE(aFormat);
-
-    va_list ap;
-    va_start(ap, aFormat);
-    otCliPlatLogv(aLogLevel, aLogRegion, aFormat, ap);
-    va_end(ap);
-}
-#endif

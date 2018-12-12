@@ -14,9 +14,8 @@
 #include "common/timer.hpp"
 #include "common/instance.hpp"
 
-#include <hal/nrf_gpio.h>
+#include "Gpio.h"
 
-#define LED1_G         NRF_GPIO_PIN_MAP(0, 6)
 
 UdpHandler::UdpHandler(otInstance *instance)
 {
@@ -52,7 +51,7 @@ otError UdpHandler::SendToggle()
 {
   otError       error;
   otMessageInfo messageInfo;
-  otMessage     *message = NULL; // TODO: fix C++11 compat
+  otMessage     *message;
   const char    *messageStr = "toggleled";
 
   memset(&messageInfo, 0, sizeof(messageInfo));
@@ -66,7 +65,7 @@ otError UdpHandler::SendToggle()
   message = otUdpNewMessage(this->mInstance, NULL);
 
   error = otMessageAppend(message, messageStr,
-    static_cast<uint16_t>(strlen(messageStr)));
+      static_cast<uint16_t>(strlen(messageStr)));
   assert(OT_ERROR_NONE == error);
 
   error = otUdpSend(this->mSocket, message, &messageInfo);
@@ -77,14 +76,14 @@ otError UdpHandler::SendToggle()
 
 
 void UdpHandler::HandleUdpReceive(void *aContext, otMessage *aMessage,
-  const otMessageInfo *aMessageInfo)
+    const otMessageInfo *aMessageInfo)
 {
     static_cast<UdpHandler *>(aContext)->HandleUdpReceive(aMessage,
       aMessageInfo);
 }
 
 void UdpHandler::HandleUdpReceive(otMessage *aMessage,
-  const otMessageInfo *aMessageInfo)
+    const otMessageInfo *aMessageInfo)
 {
     OT_UNUSED_VARIABLE(aMessageInfo);
 
@@ -95,8 +94,8 @@ void UdpHandler::HandleUdpReceive(otMessage *aMessage,
                   buf, sizeof(buf) - 1);
     buf[length] = '\0';
 
-    if (strcmp((char*)buf, "toggleled") == 0)
+    if (strcmp(reinterpret_cast<char*>(buf), "toggleled") == 0)
     {
-      nrf_gpio_pin_toggle(LED1_G);
+        Gpio::ToggleLed1();
     }
 }
