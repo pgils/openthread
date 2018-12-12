@@ -70,20 +70,22 @@ typedef struct
  * @details Set hi_accu to true to use IN_EVENT. */
 #define NRFX_GPIOTE_CONFIG_IN_SENSE_LOTOHI(hi_accu) \
     {                                               \
+        .sense = NRF_GPIOTE_POLARITY_LOTOHI,        \
+        .pull = NRF_GPIO_PIN_NOPULL,                \
         .is_watcher = false,                        \
         .hi_accuracy = hi_accu,                     \
-        .pull = NRF_GPIO_PIN_NOPULL,                \
-        .sense = NRF_GPIOTE_POLARITY_LOTOHI,        \
+        .skip_gpio_setup = true,                    \
     }
 
 /**@brief Macro for configuring a pin to use a GPIO IN or PORT EVENT to detect high-to-low transition.
  * @details Set hi_accu to true to use IN_EVENT. */
 #define NRFX_GPIOTE_CONFIG_IN_SENSE_HITOLO(hi_accu) \
     {                                               \
+        .sense = NRF_GPIOTE_POLARITY_HITOLO,        \
+        .pull = NRF_GPIO_PIN_NOPULL,                \
         .is_watcher = false,                        \
         .hi_accuracy = hi_accu,                     \
-        .pull = NRF_GPIO_PIN_NOPULL,                \
-        .sense = NRF_GPIOTE_POLARITY_HITOLO,        \
+        .skip_gpio_setup = true,                    \
     }
 
 /**@brief Macro for configuring a pin to use a GPIO IN or PORT EVENT to detect any change on the pin.

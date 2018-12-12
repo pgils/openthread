@@ -19,7 +19,6 @@ void Gpio::InitLeds()
     }
 }
 
-// TODO(pelle): interrupt
 void Gpio::InitButton(nrfx_gpiote_evt_handler_t handler)
 {
     ret_code_t err_code;
@@ -28,14 +27,14 @@ void Gpio::InitButton(nrfx_gpiote_evt_handler_t handler)
     APP_ERROR_CHECK(err_code);
 
     nrfx_gpiote_out_config_t out_config =
-        NRFX_GPIOTE_CONFIG_OUT_SIMPLE(false);
+        NRFX_GPIOTE_CONFIG_OUT_SIMPLE(true);
 
     err_code = nrfx_gpiote_out_init(LED1_G, &out_config);
     APP_ERROR_CHECK(err_code);
 
     nrfx_gpiote_in_config_t in_config =
-        NRFX_GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
+        NRFX_GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    in_config.pull = NRF_GPIO_PIN_PULLDOWN;
 
     err_code = nrfx_gpiote_in_init(BUTTON_1, &in_config, handler);
     APP_ERROR_CHECK(err_code);
