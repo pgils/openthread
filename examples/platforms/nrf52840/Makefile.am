@@ -185,6 +185,7 @@ NORDICSEMI_SOURCES                                                              
     @top_builddir@/third_party/NordicSemiconductor/nrfx/drivers/src/nrfx_clock.c                             \
     @top_builddir@/third_party/NordicSemiconductor/nrfx/drivers/src/nrfx_power.c                             \
     @top_builddir@/third_party/NordicSemiconductor/nrfx/drivers/src/nrfx_systick.c                           \
+    @top_builddir@/third_party/NordicSemiconductor/nrfx/drivers/src/nrfx_gpiote.c                            \
     @top_builddir@/third_party/NordicSemiconductor/nrfx/hal/nrf_nvmc.c                                       \
     @top_builddir@/third_party/NordicSemiconductor/nrfx/mdk/gcc_startup_nrf52840.S                           \
     @top_builddir@/third_party/NordicSemiconductor/nrfx/mdk/system_nrf52840.c                                \
