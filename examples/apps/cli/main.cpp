@@ -41,6 +41,7 @@
 #include "UdpHandler.h"
 #include "Gpio.h"
 #include "openthread-system.h"
+#include <nrfx_gpiote.h>
 
 
 
@@ -69,6 +70,11 @@ static void ThreadStateChangedCallback(uint32_t flags, void * p_context)
     }
 }
 
+void buttonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    nrfx_gpiote_out_toggle(LED1_G);
+}
+
 int main(int argc, char *argv[])
 {
     otError error = OT_ERROR_NONE;
@@ -76,7 +82,7 @@ int main(int argc, char *argv[])
     UdpHandler *handler;
 
     Gpio::InitLeds();
-    Gpio::InitButton();
+    Gpio::InitButton(&buttonPressHandler);
 
     while (true)
     {

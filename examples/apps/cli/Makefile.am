@@ -36,10 +36,11 @@ CPPFLAGS_COMMON                                                       += \
     -I$(top_srcdir)/include                                              \
     -I$(top_srcdir)/src/core                                             \
     -I$(top_srcdir)/examples/platforms                                   \
-    -I$(top_srcdir)/third_party/NordicSemiconductor/dependencies                                             \
-    -I$(top_srcdir)/third_party/NordicSemiconductor/libraries/app_error                                      \
-    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx                                                     \
-    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx/hal                                                 \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/dependencies         \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/libraries/app_error  \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx                 \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx/hal             \
+    -I$(top_srcdir)/third_party/NordicSemiconductor/nrfx/drivers/include      \
     $(NULL)
 
 LDADD_COMMON                                                          += \
