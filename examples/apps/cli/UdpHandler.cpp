@@ -16,7 +16,6 @@
 
 #include "Gpio.h"
 
-
 UdpHandler::UdpHandler(otInstance *instance)
 {
     this->mInstance = instance;
@@ -30,71 +29,65 @@ UdpHandler::~UdpHandler()
 
 otError UdpHandler::Open()
 {
-  otError       error;
-  otSockAddr    sockaddr;
+    otError    error;
+    otSockAddr sockaddr;
 
-  error = otUdpOpen(this->mInstance, this->mSocket, HandleUdpReceive, this);
-  assert(OT_ERROR_NONE == error);
-  error = otIp6AddressFromString("::", &sockaddr.mAddress);
-  assert(OT_ERROR_NONE == error);
+    error = otUdpOpen(this->mInstance, this->mSocket, HandleUdpReceive, this);
+    assert(OT_ERROR_NONE == error);
+    error = otIp6AddressFromString("::", &sockaddr.mAddress);
+    assert(OT_ERROR_NONE == error);
 
-  sockaddr.mPort    = static_cast<uint16_t>(12121);
-  sockaddr.mScopeId = OT_NETIF_INTERFACE_ID_THREAD;
+    sockaddr.mPort    = static_cast<uint16_t>(12121);
+    sockaddr.mScopeId = OT_NETIF_INTERFACE_ID_THREAD;
 
-  error = otUdpBind(this->mSocket, &sockaddr);
-  assert(OT_ERROR_NONE == error);
+    error = otUdpBind(this->mSocket, &sockaddr);
+    assert(OT_ERROR_NONE == error);
 
-  return error;
+    return error;
 }
 
 otError UdpHandler::SendToggle()
 {
-  otError       error;
-  otMessageInfo messageInfo;
-  otMessage     *message;
-  const char    *messageStr = "toggleled";
+    otError       error;
+    otMessageInfo messageInfo;
+    otMessage *   message;
+    const char *  messageStr = "toggleled";
 
-  memset(&messageInfo, 0, sizeof(messageInfo));
+    memset(&messageInfo, 0, sizeof(messageInfo));
 
-  error = otIp6AddressFromString("ff03::1", &messageInfo.mPeerAddr);
-  assert(OT_ERROR_NONE == error);
+    error = otIp6AddressFromString("ff03::1", &messageInfo.mPeerAddr);
+    assert(OT_ERROR_NONE == error);
 
-  messageInfo.mPeerPort     = static_cast<uint16_t>(12121);
-  messageInfo.mInterfaceId  = OT_NETIF_INTERFACE_ID_THREAD;
+    messageInfo.mPeerPort    = static_cast<uint16_t>(12121);
+    messageInfo.mInterfaceId = OT_NETIF_INTERFACE_ID_THREAD;
 
-  message = otUdpNewMessage(this->mInstance, NULL);
+    message = otUdpNewMessage(this->mInstance, NULL);
 
-  error = otMessageAppend(message, messageStr,
-      static_cast<uint16_t>(strlen(messageStr)));
-  assert(OT_ERROR_NONE == error);
+    error = otMessageAppend(message, messageStr, static_cast<uint16_t>(strlen(messageStr)));
+    assert(OT_ERROR_NONE == error);
 
-  error = otUdpSend(this->mSocket, message, &messageInfo);
-  assert(OT_ERROR_NONE == error);
+    error = otUdpSend(this->mSocket, message, &messageInfo);
+    assert(OT_ERROR_NONE == error);
 
-  return error;
+    return error;
 }
 
-
-void UdpHandler::HandleUdpReceive(void *aContext, otMessage *aMessage,
-    const otMessageInfo *aMessageInfo)
+void UdpHandler::HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo)
 {
-    static_cast<UdpHandler *>(aContext)->HandleUdpReceive(aMessage,
-      aMessageInfo);
+    static_cast<UdpHandler *>(aContext)->HandleUdpReceive(aMessage, aMessageInfo);
 }
 
-void UdpHandler::HandleUdpReceive(otMessage *aMessage,
-    const otMessageInfo *aMessageInfo)
+void UdpHandler::HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo)
 {
     OT_UNUSED_VARIABLE(aMessageInfo);
 
     uint8_t buf[1500];
     int     length;
 
-    length      = otMessageRead(aMessage, otMessageGetOffset(aMessage),
-                  buf, sizeof(buf) - 1);
+    length      = otMessageRead(aMessage, otMessageGetOffset(aMessage), buf, sizeof(buf) - 1);
     buf[length] = '\0';
 
-    if (strcmp(reinterpret_cast<char*>(buf), "toggleled") == 0)
+    if (strcmp(reinterpret_cast<char *>(buf), "toggleled") == 0)
     {
         Gpio::ToggleLed1();
     }

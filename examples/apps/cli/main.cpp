@@ -26,19 +26,17 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <cassert>
-#include <cstring>  // memset
+#include <cstring> // memset
+#include <nrfx_gpiote.h>
 #include <openthread-core-config.h>
 #include <openthread/config.h>
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
-#include <nrfx_gpiote.h>
 
-#include "openthread-system.h"
-#include "UdpHandler.h"
 #include "Gpio.h"
-
+#include "UdpHandler.h"
+#include "openthread-system.h"
 
 UdpHandler *udpHandler = NULL;
 
@@ -47,22 +45,21 @@ void otTaskletsSignalPending(otInstance *aInstance)
     (void)aInstance;
 }
 
-static void ThreadStateChangedCallback(uint32_t flags, void * p_context)
+static void ThreadStateChangedCallback(uint32_t flags, void *p_context)
 {
-    otDeviceRole currentRole = otThreadGetDeviceRole(
-        reinterpret_cast<otInstance*>(p_context));
-    switch(currentRole)
+    otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(p_context));
+    switch (currentRole)
     {
-      case OT_DEVICE_ROLE_CHILD:
+    case OT_DEVICE_ROLE_CHILD:
         Gpio::SetRgbLed(LED2_R);
         break;
-      case OT_DEVICE_ROLE_ROUTER:
+    case OT_DEVICE_ROLE_ROUTER:
         Gpio::SetRgbLed(LED2_G);
         break;
-      case OT_DEVICE_ROLE_LEADER:
+    case OT_DEVICE_ROLE_LEADER:
         Gpio::SetRgbLed(LED2_B);
         break;
-      default:
+    default:
         break;
     }
 }
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
 
         udpHandler = new UdpHandler(instance);
 
-        otThreadSetEnabled(instance, false);  // disable thread to set configs
+        otThreadSetEnabled(instance, false); // disable thread to set configs
 
         error = otLinkSetChannel(instance, static_cast<uint8_t>(11));
         assert(OT_ERROR_NONE == error);
@@ -113,15 +110,14 @@ int main(int argc, char *argv[])
 
         otThreadSetChildTimeout(instance, static_cast<uint32_t>(10));
 
-        error = otIp6SetEnabled(instance, true);        // ifconfig up
+        error = otIp6SetEnabled(instance, true); // ifconfig up
         assert(OT_ERROR_NONE == error);
         error = otThreadSetEnabled(instance, true);
         assert(OT_ERROR_NONE == error);
 
-        udpHandler->Open();                        // udp open / bind
+        udpHandler->Open(); // udp open / bind
 
-        otSetStateChangedCallback(instance,
-            ThreadStateChangedCallback, instance);
+        otSetStateChangedCallback(instance, ThreadStateChangedCallback, instance);
 
         while (!otSysPseudoResetWasRequested())
         {

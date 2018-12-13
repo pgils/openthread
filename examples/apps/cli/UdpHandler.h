@@ -21,8 +21,8 @@ public:
     virtual ~UdpHandler();
 
 private:
-    UdpHandler(const UdpHandler&);
-    UdpHandler& operator=(UdpHandler const&);
+    UdpHandler(const UdpHandler &);
+    UdpHandler &operator=(UdpHandler const &);
 
 public:
     otError Open();
@@ -33,7 +33,7 @@ private:
     void        HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo);
 
     otUdpSocket *mSocket;
-    otInstance  *mInstance;
+    otInstance * mInstance;
 };
 
 #endif /* UDPHANDLER_H_ */
