@@ -45,6 +45,9 @@ void otTaskletsSignalPending(otInstance *aInstance)
     (void)aInstance;
 }
 
+//
+// This function is called when the node's Thread role has changed
+//
 static void ThreadStateChangedCallback(uint32_t flags, void *p_context)
 {
     otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(p_context));
@@ -64,60 +67,79 @@ static void ThreadStateChangedCallback(uint32_t flags, void *p_context)
     }
 }
 
-void buttonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+//
+// This function is called when BUTTON_1 has been pressed
+//
+void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if (NULL != udpHandler)
     {
-        udpHandler->SendToggle();
+        udpHandler->SendToggle(12121);
     }
+}
+
+//
+// This function configures and initializes the Thread instance
+// @param[in]   instance        pointer to otInstance pointer
+// a pointer-to-pointer is used here to get around passing an unitialized
+// otInstance.
+//
+otError InitThread(otInstance **instance)
+{
+    otError error = OT_ERROR_NONE;
+
+    *instance = otInstanceInitSingle();
+    assert(*instance);
+
+    // disable thread to set configs (ignore return value!)
+    otThreadSetEnabled(*instance, false);
+
+    error = otLinkSetChannel(*instance, static_cast<uint8_t>(11));
+    assert(OT_ERROR_NONE == error);
+
+    error = otLinkSetPanId(*instance, static_cast<otPanId>(0x5678));
+    assert(OT_ERROR_NONE == error);
+
+    otLinkModeConfig mode;
+    memset(&mode, 0, sizeof(mode));
+
+    mode.mRxOnWhenIdle       = true;
+    mode.mSecureDataRequests = true;
+    mode.mDeviceType         = true;
+    mode.mNetworkData        = true;
+
+    error = otThreadSetLinkMode(*instance, mode);
+    assert(OT_ERROR_NONE == error);
+
+    otThreadSetChildTimeout(*instance, static_cast<uint32_t>(10));
+
+    error = otIp6SetEnabled(*instance, true);  // ifconfig up
+    assert(OT_ERROR_NONE == error);
+    error = otThreadSetEnabled(*instance, true);
+    assert(OT_ERROR_NONE == error);
+
+    otSetStateChangedCallback(*instance, ThreadStateChangedCallback, *instance);
+
+    return error;
 }
 
 int main(int argc, char *argv[])
 {
-    otError error = OT_ERROR_NONE;
+    otError     error;
+    otInstance  *instance;
 
     Gpio::InitLeds();
-    Gpio::InitButton(&buttonPressHandler);
+    Gpio::InitButton(&ButtonPressHandler);
 
     while (true)
     {
         otSysInit(argc, argv);
 
-        otInstance *instance;
-        instance = otInstanceInitSingle();
-        assert(instance);
-
-        udpHandler = new UdpHandler(instance);
-
-        otThreadSetEnabled(instance, false); // disable thread to set configs
-
-        error = otLinkSetChannel(instance, static_cast<uint8_t>(11));
+        error       = InitThread(&instance);
         assert(OT_ERROR_NONE == error);
 
-        error = otLinkSetPanId(instance, static_cast<otPanId>(0x5678));
-        assert(OT_ERROR_NONE == error);
-
-        otLinkModeConfig mode;
-        memset(&mode, 0, sizeof(mode));
-
-        mode.mRxOnWhenIdle       = true;
-        mode.mSecureDataRequests = true;
-        mode.mDeviceType         = true;
-        mode.mNetworkData        = true;
-
-        error = otThreadSetLinkMode(instance, mode);
-        assert(OT_ERROR_NONE == error);
-
-        otThreadSetChildTimeout(instance, static_cast<uint32_t>(10));
-
-        error = otIp6SetEnabled(instance, true); // ifconfig up
-        assert(OT_ERROR_NONE == error);
-        error = otThreadSetEnabled(instance, true);
-        assert(OT_ERROR_NONE == error);
-
-        udpHandler->Open(); // udp open / bind
-
-        otSetStateChangedCallback(instance, ThreadStateChangedCallback, instance);
+        udpHandler  = new UdpHandler(instance);
+        udpHandler->Open(12121);  // udp open / bind
 
         while (!otSysPseudoResetWasRequested())
         {
