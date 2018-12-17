@@ -27,7 +27,7 @@ UdpHandler::~UdpHandler()
     delete this->mSocket;
 }
 
-otError UdpHandler::Open()
+otError UdpHandler::Open(uint16_t port)
 {
     otError    error;
     otSockAddr sockaddr;
@@ -37,7 +37,7 @@ otError UdpHandler::Open()
     error = otIp6AddressFromString("::", &sockaddr.mAddress);
     assert(OT_ERROR_NONE == error);
 
-    sockaddr.mPort    = static_cast<uint16_t>(12121);
+    sockaddr.mPort    = static_cast<uint16_t>(port);
     sockaddr.mScopeId = OT_NETIF_INTERFACE_ID_THREAD;
 
     error = otUdpBind(this->mSocket, &sockaddr);
@@ -46,7 +46,7 @@ otError UdpHandler::Open()
     return error;
 }
 
-otError UdpHandler::SendToggle()
+otError UdpHandler::SendToggle(uint16_t port)
 {
     otError       error;
     otMessageInfo messageInfo;
@@ -58,7 +58,7 @@ otError UdpHandler::SendToggle()
     error = otIp6AddressFromString("ff03::1", &messageInfo.mPeerAddr);
     assert(OT_ERROR_NONE == error);
 
-    messageInfo.mPeerPort    = static_cast<uint16_t>(12121);
+    messageInfo.mPeerPort    = static_cast<uint16_t>(port);
     messageInfo.mInterfaceId = OT_NETIF_INTERFACE_ID_THREAD;
 
     message = otUdpNewMessage(this->mInstance, NULL);
