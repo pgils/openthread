@@ -25,8 +25,16 @@ private:
     UdpHandler &operator=(UdpHandler const &);
 
 public:
-    otError Open();
-    otError SendToggle();
+    // This function opens a network socket that listens on all
+    // network addresses for UDP messages.
+    //
+    // @param[in]   port        Port to listen on.
+    otError Open(uint16_t port);
+
+    // This function multicasts the "toggleled" command to the network.
+    //
+    // @param[in]   port        Target port for the command.
+    otError SendToggle(uint16_t port);
 
 private:
     static void HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo);

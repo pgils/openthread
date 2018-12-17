@@ -30,9 +30,17 @@
 class Gpio
 {
 public:
+    // This function initialises LD1 and LD2
     static void InitLeds();
+
+    // This function initialises SW1
     static void InitButton(nrfx_gpiote_evt_handler_t handler);
+
+    // This function sets the output color of LD2
+    // @param[in] led       Pin to set (one of RGB_LIST)
     static void SetRgbLed(uint32_t led);
+
+    // This function toggles LD1
     static void ToggleLed1();
 };
 
