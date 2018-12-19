@@ -25,7 +25,7 @@ while getopts ":c" opt; do
     esac
 done
 
-make $MAKEOPT
+time make $MAKEOPT
 
 if [[ 0 -ne $? ]]; then
     # build failed.
@@ -37,7 +37,19 @@ echo -n "Generating HEX file..."
 
 if [[ -r "$FTDFILE" ]]; then
     arm-none-eabi-objcopy -O ihex "$FTDFILE" "$FTDFILE.hex"
-fi
+    if [[ 0 -eq $? ]]; then
+        echo "Done"
+        echo "hex: $FTDFILE.hex"
+    fi
 
-echo "Done"
-echo "hex: $FTDFILE.hex"
+    # Create a flashable zip if nrfutil is available
+    type nrfutil >/dev/null 2>&1
+    if [[ 0 -eq $? ]]; then
+        echo -n "Creating flashable zip..."
+        nrfutil pkg generate --hw-version 52 --debug-mode --sd-req 0x00 \
+        --application $FTDFILE.hex $FTDFILE.zip
+        if [[ 0 -eq $? ]]; then
+            echo "Done"
+        fi
+    fi
+fi
