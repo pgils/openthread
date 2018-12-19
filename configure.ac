@@ -1834,6 +1834,7 @@ examples/Makefile
 examples/apps/Makefile
 examples/apps/cli/Makefile
 examples/apps/ncp/Makefile
+examples/apps/shirt/Makefile
 examples/platforms/Makefile
 examples/platforms/cc1352/Makefile
 examples/platforms/cc2538/Makefile

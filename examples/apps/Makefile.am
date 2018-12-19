@@ -33,6 +33,7 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 DIST_SUBDIRS                            = \
     cli                                   \
     ncp                                   \
+    shirt                                 \
     $(NULL)
 
 # Always build (e.g. for 'make all') these subdirectories.
@@ -48,11 +49,14 @@ if OPENTHREAD_ENABLE_NCP
 SUBDIRS                                += ncp
 endif
 
+SUBDIRS                                += shirt
+
 # Always pretty (e.g. for 'make pretty') these subdirectories.
 
 PRETTY_SUBDIRS                          = \
     cli                                   \
     ncp                                   \
+    shirt                                 \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
