@@ -7,8 +7,8 @@ Install build dependencies:
  - automake
  - g++
  - libtool
- - make
- For `make pretty`:
+ - make  
+For `make pretty`:
  - clang-format
 
 [gnu-toolchain]: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
