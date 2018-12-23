@@ -48,11 +48,7 @@ while getopts ":tc" opt; do
         fi
         ;;
         c)
-        make $MAKEOPT clean
-        if [[ 0 -ne $? ]]; then
-            # clean failed.
-            exit
-        fi
+        MAKE_CLEAN="true"
         ;;
         \?)
         usage
@@ -63,6 +59,14 @@ done
 
 if [[ -n "$USE_TOOLCHAIN" ]]; then
     export PATH="$(realpath $USE_TOOLCHAIN/bin):$PATH"
+fi
+
+if [[ -n "$MAKE_CLEAN" ]]; then
+    make $MAKEOPT clean
+    if [[ 0 -ne $? ]]; then
+        # clean failed.
+        exit
+    fi
 fi
 
 time make $MAKEOPT
