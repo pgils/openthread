@@ -7,9 +7,10 @@ FTDFILE="output/nrf52840/bin/ot-shirt-ftd"
 
 function usage() {
     echo
-    echo "  usage: $0 [-c]"
+    echo "  usage: $0 [-cts]"
     echo "    c: clean before build."
     echo "    t: search for toolchain in parent directory."
+    echo "    s: use ccache."
 }
 
 function find_toolchain() {
@@ -38,7 +39,7 @@ function find_toolchain() {
     return 0
 }
 
-while getopts ":tc" opt; do
+while getopts ":tcs" opt; do
     case $opt in
         t)
         find_toolchain
@@ -49,6 +50,9 @@ while getopts ":tc" opt; do
         ;;
         c)
         MAKE_CLEAN="true"
+        ;;
+        s)
+        MAKEOPT="$MAKEOPT CCPREFIX=ccache"
         ;;
         \?)
         usage
