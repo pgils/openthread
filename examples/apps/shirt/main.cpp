@@ -33,6 +33,7 @@
 #include <openthread/config.h>
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
+#include <openthread/joiner.h>
 
 #include "Gpio.h"
 #include "UdpHandler.h"
@@ -48,21 +49,40 @@ void otTaskletsSignalPending(otInstance *aInstance)
 //
 // This function is called when the node's Thread role has changed
 //
-static void ThreadStateChangedCallback(uint32_t flags, void *p_context)
+static void ThreadStateChangedCallback(uint32_t flags, void *context)
 {
-    otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(p_context));
+    otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(context));
     switch (currentRole)
     {
     case OT_DEVICE_ROLE_CHILD:
-        Gpio::SetRgbLed(LED2_R);
-        break;
     case OT_DEVICE_ROLE_ROUTER:
         Gpio::SetRgbLed(LED2_G);
         break;
-    case OT_DEVICE_ROLE_LEADER:
-        Gpio::SetRgbLed(LED2_B);
-        break;
     default:
+        break;
+    }
+}
+
+//
+// This function is called when the Join operation completes
+//
+static void JoinCompleteCallback(otError error, void *context)
+{
+    otInstance *instance = reinterpret_cast<otInstance *>(context);
+
+    switch (error) {
+        case OT_ERROR_SECURITY:
+        case OT_ERROR_NOT_FOUND:
+        case OT_ERROR_RESPONSE_TIMEOUT:
+        //TODO: handle
+        Gpio::SetRgbLed(LED2_R);
+        break;
+        case OT_ERROR_NONE:
+            error = otThreadSetEnabled(instance, true);
+            assert(OT_ERROR_NONE == error);
+            otSetStateChangedCallback(instance, ThreadStateChangedCallback, instance);
+        break;
+        default:
         break;
     }
 }
@@ -74,7 +94,7 @@ void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if (NULL != udpHandler)
     {
-        udpHandler->SendToggle(12121);
+        udpHandler->SendToggle(8012);
     }
 }
 
@@ -94,12 +114,6 @@ otError InitThread(otInstance **instance)
     // disable thread to set configs (ignore return value!)
     otThreadSetEnabled(*instance, false);
 
-    error = otLinkSetChannel(*instance, static_cast<uint8_t>(11));
-    assert(OT_ERROR_NONE == error);
-
-    error = otLinkSetPanId(*instance, static_cast<otPanId>(0x5678));
-    assert(OT_ERROR_NONE == error);
-
     otLinkModeConfig mode;
     memset(&mode, 0, sizeof(mode));
 
@@ -111,14 +125,13 @@ otError InitThread(otInstance **instance)
     error = otThreadSetLinkMode(*instance, mode);
     assert(OT_ERROR_NONE == error);
 
-    otThreadSetChildTimeout(*instance, static_cast<uint32_t>(10));
-
     error = otIp6SetEnabled(*instance, true);  // ifconfig up
     assert(OT_ERROR_NONE == error);
-    error = otThreadSetEnabled(*instance, true);
+
+    error = otJoinerStart(*instance, "D0M001", NULL, PACKAGE_NAME, OPENTHREAD_CONFIG_PLATFORM_INFO,
+                            PACKAGE_VERSION, NULL, JoinCompleteCallback, *instance);
     assert(OT_ERROR_NONE == error);
 
-    otSetStateChangedCallback(*instance, ThreadStateChangedCallback, *instance);
 
     return error;
 }
@@ -139,7 +152,7 @@ int main(int argc, char *argv[])
         assert(OT_ERROR_NONE == error);
 
         udpHandler  = new UdpHandler(instance);
-        udpHandler->Open(12121);  // udp open / bind
+        udpHandler->Open(8012);  // udp open / bind
 
         while (!otSysPseudoResetWasRequested())
         {
