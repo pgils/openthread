@@ -2,7 +2,7 @@
 #
 # A toolchain can be specified by setting USE_TOOLCHAIN
 
-MAKEOPT="-f examples/Makefile-nrf52840 USB=1 BOOTLOADER=1"
+MAKEOPT="-f examples/Makefile-nrf52840 USB=1 BOOTLOADER=1 JOINER=1"
 FTDFILE="output/nrf52840/bin/ot-shirt-ftd"
 
 function usage() {
