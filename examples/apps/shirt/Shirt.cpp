@@ -26,20 +26,17 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "Shirt.h"
 #include <cassert>
 #include <cstring> // memset
-#include <nrfx_gpiote.h>
 #include <openthread-core-config.h>
 #include <openthread/config.h>
 #include <openthread/tasklet.h>
-#include <openthread/thread.h>
 #include <openthread/joiner.h>
 
 #include "Gpio.h"
 #include "UdpHandler.h"
 #include "openthread-system.h"
-
-UdpHandler *udpHandler = NULL;
 
 void otTaskletsSignalPending(otInstance *aInstance)
 {
@@ -49,7 +46,7 @@ void otTaskletsSignalPending(otInstance *aInstance)
 //
 // This function is called when the node's Thread role has changed
 //
-static void ThreadStateChangedCallback(uint32_t flags, void *context)
+void Shirt::ThreadStateChangedCallback(uint32_t flags, void *context)
 {
     otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(context));
     switch (currentRole)
@@ -66,7 +63,7 @@ static void ThreadStateChangedCallback(uint32_t flags, void *context)
 //
 // This function is called when the Join operation completes
 //
-static void JoinCompleteCallback(otError error, void *context)
+void Shirt::JoinCompleteCallback(otError error, void *context)
 {
     otInstance *instance = reinterpret_cast<otInstance *>(context);
 
@@ -92,27 +89,27 @@ static void JoinCompleteCallback(otError error, void *context)
 //
 void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    if (NULL != udpHandler)
-    {
-        udpHandler->SendToggle(8012);
-    }
+    shirt->SendSignal();
+    Gpio::SetRgbLed(LED2_B);
+}
+
+void Shirt::SendSignal()
+{
+    mUdpHandler->SendToggle(UDPPORT);
 }
 
 //
 // This function configures and initializes the Thread instance
-// @param[in]   instance        pointer to otInstance pointer
-// a pointer-to-pointer is used here to get around passing an unitialized
-// otInstance.
 //
-otError InitThread(otInstance **instance)
+otError Shirt::InitThread()
 {
     otError error = OT_ERROR_NONE;
 
-    *instance = otInstanceInitSingle();
-    assert(*instance);
+    mInstance = otInstanceInitSingle();
+    assert(mInstance);
 
     // disable thread to set configs (ignore return value!)
-    otThreadSetEnabled(*instance, false);
+    otThreadSetEnabled(mInstance, false);
 
     otLinkModeConfig mode;
     memset(&mode, 0, sizeof(mode));
@@ -122,25 +119,46 @@ otError InitThread(otInstance **instance)
     mode.mDeviceType         = true;
     mode.mNetworkData        = true;
 
-    error = otThreadSetLinkMode(*instance, mode);
+    error = otThreadSetLinkMode(mInstance, mode);
     assert(OT_ERROR_NONE == error);
 
-    error = otIp6SetEnabled(*instance, true);  // ifconfig up
+    error = otIp6SetEnabled(mInstance, true);  // ifconfig up
     assert(OT_ERROR_NONE == error);
 
-    error = otJoinerStart(*instance, "D0M001", NULL, PACKAGE_NAME, OPENTHREAD_CONFIG_PLATFORM_INFO,
-                            PACKAGE_VERSION, NULL, JoinCompleteCallback, *instance);
+    error = otJoinerStart(mInstance, JOINERID, NULL, PACKAGE_NAME, OPENTHREAD_CONFIG_PLATFORM_INFO,
+                            PACKAGE_VERSION, NULL, JoinCompleteCallback, mInstance);
     assert(OT_ERROR_NONE == error);
-
 
     return error;
 }
 
-int main(int argc, char *argv[])
+//
+// This function is the main application loop.
+//
+void Shirt::Run()
 {
     otError     error;
-    otInstance  *instance;
 
+    error       = InitThread();
+    assert(OT_ERROR_NONE == error);
+
+    mUdpHandler = new UdpHandler(mInstance);
+    mUdpHandler->Open(UDPPORT);  // udp open / bind
+
+    while (!otSysPseudoResetWasRequested())
+    {
+        otTaskletsProcess(mInstance);
+        otSysProcessDrivers(mInstance);
+    }
+
+    otInstanceFinalize(mInstance);
+    delete mUdpHandler;
+}
+
+Shirt *shirt;
+
+int main(int argc, char *argv[])
+{
     Gpio::InitLeds();
     Gpio::InitButton(&ButtonPressHandler);
 
@@ -148,20 +166,9 @@ int main(int argc, char *argv[])
     {
         otSysInit(argc, argv);
 
-        error       = InitThread(&instance);
-        assert(OT_ERROR_NONE == error);
-
-        udpHandler  = new UdpHandler(instance);
-        udpHandler->Open(8012);  // udp open / bind
-
-        while (!otSysPseudoResetWasRequested())
-        {
-            otTaskletsProcess(instance);
-            otSysProcessDrivers(instance);
-        }
-
-        otInstanceFinalize(instance);
-        delete udpHandler;
+        shirt   = new Shirt();
+        shirt->Run();
+        delete shirt;
     }
 
     return 0;
