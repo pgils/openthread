@@ -53,7 +53,7 @@ LIBTOOLFLAGS_COMMON                                                   += \
     $(NULL)
 
 SOURCES_COMMON                                                        += \
-    main.cpp                                                             \
+    Shirt.cpp                                                             \
     UdpHandler.cpp                                                       \
     Gpio.cpp                                                             \
     $(NULL)
