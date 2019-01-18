@@ -56,6 +56,7 @@ SOURCES_COMMON                                                        += \
     Shirt.cpp                                                             \
     UdpHandler.cpp                                                       \
     Gpio.cpp                                                             \
+    tinyxml2.cpp                                                         \
     $(NULL)
 
 if OPENTHREAD_ENABLE_BUILTIN_MBEDTLS
