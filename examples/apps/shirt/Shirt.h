@@ -12,8 +12,8 @@ class UdpHandler;
 class Shirt
 {
 public:
-    Shirt()             {};
-    virtual ~Shirt()    {};
+    Shirt();
+    virtual ~Shirt();
 
 private:
     Shirt( const Shirt& );

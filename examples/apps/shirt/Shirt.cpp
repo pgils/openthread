@@ -44,6 +44,27 @@ void otTaskletsSignalPending(otInstance *aInstance)
 }
 
 //
+// Constructor
+//
+Shirt::Shirt()
+{
+    otError     error;
+
+    error       = InitThread();
+    assert(OT_ERROR_NONE == error);
+
+    mUdpHandler = new UdpHandler(mInstance);
+    assert(OT_ERROR_NONE == mUdpHandler->Open(UDPPORT));  // udp open / bind
+
+}
+
+Shirt::~Shirt()
+{
+    otInstanceFinalize(mInstance);
+    delete mUdpHandler;
+}
+
+//
 // This function is called when the node's Thread role has changed
 //
 void Shirt::ThreadStateChangedCallback(uint32_t flags, void *context)
@@ -137,22 +158,12 @@ otError Shirt::InitThread()
 //
 void Shirt::Run()
 {
-    otError     error;
-
-    error       = InitThread();
-    assert(OT_ERROR_NONE == error);
-
-    mUdpHandler = new UdpHandler(mInstance);
-    mUdpHandler->Open(UDPPORT);  // udp open / bind
-
     while (!otSysPseudoResetWasRequested())
     {
         otTaskletsProcess(mInstance);
         otSysProcessDrivers(mInstance);
     }
 
-    otInstanceFinalize(mInstance);
-    delete mUdpHandler;
 }
 
 Shirt *shirt;
