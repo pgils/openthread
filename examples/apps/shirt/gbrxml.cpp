@@ -129,6 +129,7 @@ template<typename T>
 XMLError gbrXML::GetXMLElementValue(XMLHandle *handle, const char* name,
                                     XMLError(XMLElement::*query)(T*) const, T *target)
 {
+    *target = 0;
     XMLElement *element	= handle->FirstChildElement(name).ToElement();
     if( element )
     {
