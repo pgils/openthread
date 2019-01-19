@@ -39,9 +39,9 @@ void Gpio::InitButton(nrfx_gpiote_evt_handler_t handler)
     nrfx_gpiote_in_event_enable(BUTTON_1, true);
 }
 
-void Gpio::ToggleLed1()
+void Gpio::SetLed1(bool on)
 {
-    nrf_gpio_pin_toggle(LED1_G);
+    nrf_gpio_pin_write(LED1_G, !on);
 }
 
 void Gpio::SetRgbLed(uint32_t led)
