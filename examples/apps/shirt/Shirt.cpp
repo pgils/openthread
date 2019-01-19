@@ -35,7 +35,6 @@
 #include <openthread/joiner.h>
 
 #include "Gpio.h"
-#include "UdpHandler.h"
 #include "gbrxml.h"
 #include "openthread-system.h"
 
@@ -54,7 +53,9 @@ Shirt::Shirt()
     error       = InitThread();
     assert(OT_ERROR_NONE == error);
 
-    mUdpHandler = new UdpHandler(mInstance, MessageReceivedCallback);
+    mShirtConfig = new ShirtConfig(mInstance);
+
+    mUdpHandler = new UdpHandler(mInstance, MessageReceivedCallback, this);
     assert(OT_ERROR_NONE == mUdpHandler->Open(UDPPORT));  // udp open / bind
 
 }
@@ -63,6 +64,7 @@ Shirt::~Shirt()
 {
     otInstanceFinalize(mInstance);
     delete mUdpHandler;
+    delete mShirtConfig;
 }
 
 //
@@ -70,14 +72,17 @@ Shirt::~Shirt()
 //
 void Shirt::ThreadStateChangedCallback(uint32_t flags, void *context)
 {
-    otDeviceRole currentRole = otThreadGetDeviceRole(reinterpret_cast<otInstance *>(context));
+    Shirt           *contextShirt   = reinterpret_cast<Shirt *>(context);
+    otDeviceRole    currentRole     = otThreadGetDeviceRole(contextShirt->mInstance);
     switch (currentRole)
     {
     case OT_DEVICE_ROLE_CHILD:
     case OT_DEVICE_ROLE_ROUTER:
-        Gpio::SetRgbLed(LED2_G);
+        Gpio::SetLed1(true);
+        contextShirt->SendNodeConfig();
         break;
     default:
+        Gpio::SetLed1(false);
         break;
     }
 }
@@ -85,21 +90,20 @@ void Shirt::ThreadStateChangedCallback(uint32_t flags, void *context)
 //
 // This function is called when the Join operation completes
 //
+//TODO: assert if not joined
 void Shirt::JoinCompleteCallback(otError error, void *context)
 {
-    otInstance *instance = reinterpret_cast<otInstance *>(context);
+    Shirt   *contextShirt   = reinterpret_cast<Shirt *>(context);
 
     switch (error) {
         case OT_ERROR_SECURITY:
         case OT_ERROR_NOT_FOUND:
         case OT_ERROR_RESPONSE_TIMEOUT:
-        //TODO: handle
-        Gpio::SetRgbLed(LED2_R);
         break;
         case OT_ERROR_NONE:
-            error = otThreadSetEnabled(instance, true);
+            error = otThreadSetEnabled(contextShirt->mInstance, true);
             assert(OT_ERROR_NONE == error);
-            otSetStateChangedCallback(instance, ThreadStateChangedCallback, instance);
+            otSetStateChangedCallback(contextShirt->mInstance, ThreadStateChangedCallback, contextShirt);
         break;
         default:
         break;
@@ -109,13 +113,31 @@ void Shirt::JoinCompleteCallback(otError error, void *context)
 //
 // This function is called when a message has been received by the UDP handler.
 //
-void Shirt::MessageReceivedCallback(gbrXML *xml)
+void Shirt::MessageReceivedCallback(gbrXML *xml, void *context)
 {
-    if(gbrXMLMessageType::SIGNAL == xml->GetType())
+    Shirt   *contextShirt   = reinterpret_cast<Shirt*>(context);
+
+    switch (xml->GetType())
     {
-        // Gpio::SetRgbLed(LED2_B);
-        Gpio::ToggleLed1();
+        case gbrXMLMessageType::SIGNAL:
+            contextShirt->mShirtConfig->ReceiveSignal(xml->GetSignal());
+            break;
+        case gbrXMLMessageType::GETNODECONFIG:
+            //contextShirt->mUdpHandler->SendMulticast(UDPPORT, xml->GetXML()->c_str());
+            break;
+        case gbrXMLMessageType::NODECONFIG:
+            contextShirt->mShirtConfig->SetNodeConfig(xml->GetNodeConfig());
+            break;
+        default:
+        break;
     }
+}
+
+void Shirt::SendNodeConfig()
+{
+    otError     error;
+    error = mUdpHandler->SendMulticast(UDPPORT, mShirtConfig->GetNodeConfigXML()->c_str());
+    assert(OT_ERROR_NONE == error);
 }
 
 //
@@ -123,12 +145,7 @@ void Shirt::MessageReceivedCallback(gbrXML *xml)
 //
 void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    shirt->SendSignal();
-}
-
-void Shirt::SendSignal()
-{
-    mUdpHandler->SendToggle(UDPPORT);
+    // shirt->SendSignal();
 }
 
 //
@@ -159,7 +176,7 @@ otError Shirt::InitThread()
     assert(OT_ERROR_NONE == error);
 
     error = otJoinerStart(mInstance, JOINERID, NULL, PACKAGE_NAME, OPENTHREAD_CONFIG_PLATFORM_INFO,
-                            PACKAGE_VERSION, NULL, JoinCompleteCallback, mInstance);
+                            PACKAGE_VERSION, NULL, JoinCompleteCallback, this);
     assert(OT_ERROR_NONE == error);
 
     return error;
@@ -170,6 +187,7 @@ otError Shirt::InitThread()
 //
 void Shirt::Run()
 {
+
     while (!otSysPseudoResetWasRequested())
     {
         otTaskletsProcess(mInstance);

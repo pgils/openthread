@@ -18,7 +18,7 @@ class gbrXML;
 class UdpHandler
 {
 public:
-    UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*));
+    UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*, void *context), void *context);
     virtual ~UdpHandler();
 
 private:
@@ -32,19 +32,21 @@ public:
     // @param[in]   port        Port to listen on.
     otError Open(uint16_t port);
 
-    // This function multicasts the "toggleled" command to the network.
+    // This function multicasts a message to the network.
     //
     // @param[in]   port        Target port for the command.
-    otError SendToggle(uint16_t port);
+    // @param[in]   messageStr  Message to be sent.
+    otError SendMulticast(uint16_t port, const char *messageStr);
 
 private:
     static void HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo);
     void        HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo);
 
-    void        (*mMessageCallback)(gbrXML*);
+    void        (*mMessageCallback)(gbrXML*, void *context);
+    void        *mCallbackContext;
 
     otUdpSocket *mSocket;
-    otInstance * mInstance;
+    otInstance  *mInstance;
 };
 
 #endif /* UDPHANDLER_H_ */

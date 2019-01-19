@@ -20,11 +20,13 @@
 #include <string>
 
 
-UdpHandler::UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*))
+UdpHandler::UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*, void *context),
+                        void * callbackContext)
 {
     this->mInstance         = instance;
     this->mSocket           = new otUdpSocket();
     this->mMessageCallback  = messageCallback;
+    this->mCallbackContext  = callbackContext;
 }
 
 UdpHandler::~UdpHandler()
@@ -51,12 +53,11 @@ otError UdpHandler::Open(uint16_t port)
     return error;
 }
 
-otError UdpHandler::SendToggle(uint16_t port)
+otError UdpHandler::SendMulticast(uint16_t port, const char *messageStr)
 {
     otError       error;
     otMessageInfo messageInfo;
     otMessage *   message;
-    const char *  messageStr = "toggleled";
 
     memset(&messageInfo, 0, sizeof(messageInfo));
 
@@ -93,11 +94,13 @@ void UdpHandler::HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMes
     buf[length] = '\0';
 
     std::string message(reinterpret_cast<char*>(buf));
+    gbrXML  *xmlReader;
     try {
-        gbrXML xmlReader(&message);
+        xmlReader = new gbrXML(&message);
     } catch (std::runtime_error&) {
         return;
     }
-    mMessageCallback(&xmlReader);
+    mMessageCallback(xmlReader, mCallbackContext);
+    delete xmlReader;
 
 }

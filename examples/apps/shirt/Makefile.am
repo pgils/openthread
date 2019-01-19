@@ -53,7 +53,8 @@ LIBTOOLFLAGS_COMMON                                                   += \
     $(NULL)
 
 SOURCES_COMMON                                                        += \
-    Shirt.cpp                                                             \
+    Shirt.cpp                                                            \
+    ShirtConfig.cpp                                                      \
     UdpHandler.cpp                                                       \
     Gpio.cpp                                                             \
     tinyxml2.cpp                                                         \
