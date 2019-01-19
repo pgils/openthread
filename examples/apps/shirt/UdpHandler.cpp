@@ -15,11 +15,16 @@
 #include "common/instance.hpp"
 
 #include "Gpio.h"
+#include "gbrxml.h"
 
-UdpHandler::UdpHandler(otInstance *instance)
+#include <string>
+
+
+UdpHandler::UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*))
 {
-    this->mInstance = instance;
-    this->mSocket   = new otUdpSocket();
+    this->mInstance         = instance;
+    this->mSocket           = new otUdpSocket();
+    this->mMessageCallback  = messageCallback;
 }
 
 UdpHandler::~UdpHandler()
@@ -87,8 +92,12 @@ void UdpHandler::HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMes
     length      = otMessageRead(aMessage, otMessageGetOffset(aMessage), buf, sizeof(buf) - 1);
     buf[length] = '\0';
 
-    if (strcmp(reinterpret_cast<char *>(buf), "toggleled") == 0)
-    {
-        Gpio::ToggleLed1();
+    std::string message(reinterpret_cast<char*>(buf));
+    try {
+        gbrXML xmlReader(&message);
+    } catch (std::runtime_error&) {
+        return;
     }
+    mMessageCallback(&xmlReader);
+
 }

@@ -13,11 +13,12 @@
 #include <openthread/udp.h>
 
 class otInstance;
+class gbrXML;
 
 class UdpHandler
 {
 public:
-    explicit UdpHandler(otInstance *instance);
+    UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*));
     virtual ~UdpHandler();
 
 private:
@@ -39,6 +40,8 @@ public:
 private:
     static void HandleUdpReceive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo);
     void        HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMessageInfo);
+
+    void        (*mMessageCallback)(gbrXML*);
 
     otUdpSocket *mSocket;
     otInstance * mInstance;

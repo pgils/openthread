@@ -36,6 +36,7 @@
 
 #include "Gpio.h"
 #include "UdpHandler.h"
+#include "gbrxml.h"
 #include "openthread-system.h"
 
 void otTaskletsSignalPending(otInstance *aInstance)
@@ -53,7 +54,7 @@ Shirt::Shirt()
     error       = InitThread();
     assert(OT_ERROR_NONE == error);
 
-    mUdpHandler = new UdpHandler(mInstance);
+    mUdpHandler = new UdpHandler(mInstance, MessageReceivedCallback);
     assert(OT_ERROR_NONE == mUdpHandler->Open(UDPPORT));  // udp open / bind
 
 }
@@ -106,12 +107,23 @@ void Shirt::JoinCompleteCallback(otError error, void *context)
 }
 
 //
+// This function is called when a message has been received by the UDP handler.
+//
+void Shirt::MessageReceivedCallback(gbrXML *xml)
+{
+    if(gbrXMLMessageType::SIGNAL == xml->GetType())
+    {
+        // Gpio::SetRgbLed(LED2_B);
+        Gpio::ToggleLed1();
+    }
+}
+
+//
 // This function is called when BUTTON_1 has been pressed
 //
 void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     shirt->SendSignal();
-    Gpio::SetRgbLed(LED2_B);
 }
 
 void Shirt::SendSignal()

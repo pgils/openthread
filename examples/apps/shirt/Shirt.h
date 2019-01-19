@@ -8,6 +8,7 @@
 #define UDPPORT     8012
 
 class UdpHandler;
+class gbrXML;
 
 class Shirt
 {
@@ -30,6 +31,7 @@ private:
     otError InitThread();
     static void ThreadStateChangedCallback(uint32_t flags, void *context);
     static void JoinCompleteCallback(otError error, void *context);
+    static void MessageReceivedCallback(gbrXML *xml);
 };
 
 extern Shirt *shirt;
