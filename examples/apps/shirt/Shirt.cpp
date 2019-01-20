@@ -142,7 +142,7 @@ void Shirt::SendNodeConfig()
 
 void Shirt::SendSignal()
 {
-    if( !mShirtConfig->isInitialized() ) { return; }
+    if( !mShirtConfig->isSensor() ) { return; }
 
     otError     error;
     error = mUdpHandler->SendMulticast(UDPPORT, mShirtConfig->GetSignalXML()->c_str());
