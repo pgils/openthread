@@ -10,13 +10,19 @@
 
 #define     SHIRT_INITALIZED 2
 
+enum class NodeRole
+{
+    ACTUATOR        = 1,
+    SENSOR          = 2,
+};
+
 enum class SignalAction
 {
-    NONE    = 0,
-    OFF     = 1,
-    RED     = 2,
-    GREEN   = 3,
-    BLUE    = 4,
+    NONE    = 1,
+    OFF     = 2,
+    RED     = 3,
+    GREEN   = 4,
+    BLUE    = 5,
 };
 
 class ShirtConfig
@@ -30,7 +36,9 @@ private:
     ShirtConfig& operator=( const ShirtConfig& );
 
 public:
-    bool isInitialized();
+    bool isSensor();
+    bool isActuator();
+
     void SetNodeConfig(NodeConfig *config);
     std::string * GetSignalXML();
     std::string * GetNodeConfigXML();
@@ -41,6 +49,7 @@ private:
     otInstance  *mInstance;
     NodeConfig  mConfig;
 
+    bool GetRole(const NodeRole role);
     template <typename T>
     std::string * GetXML(T *input);
 };

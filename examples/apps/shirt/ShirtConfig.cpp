@@ -24,9 +24,20 @@ ShirtConfig::ShirtConfig(otInstance *instance)
     mConfig.signal      = 1;
 }
 
-bool ShirtConfig::isInitialized()
+bool ShirtConfig::GetRole(const NodeRole role)
 {
-    return (SHIRT_INITALIZED == mConfig.status);
+    return  (role == static_cast<NodeRole>(mConfig.role))
+         && (SHIRT_INITALIZED == mConfig.status);
+}
+
+bool ShirtConfig::isSensor()
+{
+    return GetRole(NodeRole::SENSOR);
+}
+
+bool ShirtConfig::isActuator()
+{
+    return GetRole(NodeRole::ACTUATOR);
 }
 
 void ShirtConfig::SetNodeConfig(NodeConfig *config)
@@ -38,7 +49,7 @@ void ShirtConfig::SetNodeConfig(NodeConfig *config)
         mConfig.signal  = config->signal;
         mConfig.groups  = config->groups;
 
-        if( !this->isInitialized() )
+        if( !this->isActuator() )
         {
             Gpio::SetRgbLed(LED2_OFF);
         }
@@ -68,7 +79,7 @@ std::string * ShirtConfig::GetNodeConfigXML()
 
 void ShirtConfig::ReceiveSignal(Signal *signal)
 {
-    if( !this->isInitialized() ) { return; }
+    if( !this->isActuator() ) { return; }
 
     for( int group : mConfig.groups )
     {
