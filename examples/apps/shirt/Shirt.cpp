@@ -170,6 +170,10 @@ otError Shirt::InitThread()
     // disable thread to set configs (ignore return value!)
     otThreadSetEnabled(mInstance, false);
 
+    // erase non-volatile network info.
+    error = otInstanceErasePersistentInfo(mInstance);
+    assert(OT_ERROR_NONE == error);
+
     otLinkModeConfig mode;
     memset(&mode, 0, sizeof(mode));
 
