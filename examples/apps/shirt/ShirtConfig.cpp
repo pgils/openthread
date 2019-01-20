@@ -18,10 +18,15 @@ ShirtConfig::ShirtConfig(otInstance *instance)
                                           addrEui64.m8[4], addrEui64.m8[5], addrEui64.m8[6], addrEui64.m8[7]);
     mConfig.eui64       = std::string(eui64Buf);
     mConfig.active      = 1;
-    mConfig.status      = 0;
+    mConfig.status      = 1;
     mConfig.groups      = {0};
-    mConfig.role        = 0;
-    mConfig.signal      = 0;
+    mConfig.role        = 1;
+    mConfig.signal      = 1;
+}
+
+bool ShirtConfig::isInitialized()
+{
+    return (SHIRT_INITALIZED == mConfig.status);
 }
 
 void ShirtConfig::SetNodeConfig(NodeConfig *config)
@@ -32,6 +37,11 @@ void ShirtConfig::SetNodeConfig(NodeConfig *config)
         mConfig.role    = config->role;
         mConfig.signal  = config->signal;
         mConfig.groups  = config->groups;
+
+        if( !this->isInitialized() )
+        {
+            Gpio::SetRgbLed(LED2_OFF);
+        }
     }
 }
 
@@ -58,6 +68,8 @@ std::string * ShirtConfig::GetNodeConfigXML()
 
 void ShirtConfig::ReceiveSignal(Signal *signal)
 {
+    if( !this->isInitialized() ) { return; }
+
     for( int group : mConfig.groups )
     {
         if( std::find(signal->groups.begin(), signal->groups.end(), group) != signal->groups.end())

@@ -5,8 +5,10 @@
 #include <openthread/instance.h>
 #include <string>
 
-#define JOINERID    "D0M001"
-#define UDPPORT     8012
+#define     JOINERID    "D0M001"
+#define     UDPPORT     8012
+
+#define     SHIRT_INITALIZED 2
 
 enum class SignalAction
 {
@@ -28,6 +30,7 @@ private:
     ShirtConfig& operator=( const ShirtConfig& );
 
 public:
+    bool isInitialized();
     void SetNodeConfig(NodeConfig *config);
     std::string * GetSignalXML();
     std::string * GetNodeConfigXML();
