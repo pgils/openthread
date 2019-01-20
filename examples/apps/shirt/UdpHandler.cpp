@@ -15,11 +15,18 @@
 #include "common/instance.hpp"
 
 #include "Gpio.h"
+#include "gbrxml.h"
 
-UdpHandler::UdpHandler(otInstance *instance)
+#include <string>
+
+
+UdpHandler::UdpHandler(otInstance *instance, void (*messageCallback)(gbrXML*, void *context),
+                        void * callbackContext)
 {
-    this->mInstance = instance;
-    this->mSocket   = new otUdpSocket();
+    this->mInstance         = instance;
+    this->mSocket           = new otUdpSocket();
+    this->mMessageCallback  = messageCallback;
+    this->mCallbackContext  = callbackContext;
 }
 
 UdpHandler::~UdpHandler()
@@ -46,12 +53,11 @@ otError UdpHandler::Open(uint16_t port)
     return error;
 }
 
-otError UdpHandler::SendToggle(uint16_t port)
+otError UdpHandler::SendMulticast(uint16_t port, const char *messageStr)
 {
     otError       error;
     otMessageInfo messageInfo;
     otMessage *   message;
-    const char *  messageStr = "toggleled";
 
     memset(&messageInfo, 0, sizeof(messageInfo));
 
@@ -87,8 +93,14 @@ void UdpHandler::HandleUdpReceive(otMessage *aMessage, const otMessageInfo *aMes
     length      = otMessageRead(aMessage, otMessageGetOffset(aMessage), buf, sizeof(buf) - 1);
     buf[length] = '\0';
 
-    if (strcmp(reinterpret_cast<char *>(buf), "toggleled") == 0)
-    {
-        Gpio::ToggleLed1();
+    std::string message(reinterpret_cast<char*>(buf));
+    gbrXML  *xmlReader;
+    try {
+        xmlReader = new gbrXML(&message);
+    } catch (std::runtime_error&) {
+        return;
     }
+    mMessageCallback(xmlReader, mCallbackContext);
+    delete xmlReader;
+
 }

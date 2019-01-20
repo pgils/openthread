@@ -53,10 +53,12 @@ LIBTOOLFLAGS_COMMON                                                   += \
     $(NULL)
 
 SOURCES_COMMON                                                        += \
-    Shirt.cpp                                                             \
+    Shirt.cpp                                                            \
+    ShirtConfig.cpp                                                      \
     UdpHandler.cpp                                                       \
     Gpio.cpp                                                             \
     tinyxml2.cpp                                                         \
+    gbrxml.cpp                                                           \
     $(NULL)
 
 if OPENTHREAD_ENABLE_BUILTIN_MBEDTLS
