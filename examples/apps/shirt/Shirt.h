@@ -20,6 +20,7 @@ private:
 
 public:
     void Run();
+    void SendSignal();
 
 private:
     otInstance  *mInstance;

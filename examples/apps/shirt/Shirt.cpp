@@ -123,7 +123,7 @@ void Shirt::MessageReceivedCallback(gbrXML *xml, void *context)
             contextShirt->mShirtConfig->ReceiveSignal(xml->GetSignal());
             break;
         case gbrXMLMessageType::GETNODECONFIG:
-            //contextShirt->mUdpHandler->SendMulticast(UDPPORT, xml->GetXML()->c_str());
+            contextShirt->SendNodeConfig();
             break;
         case gbrXMLMessageType::NODECONFIG:
             contextShirt->mShirtConfig->SetNodeConfig(xml->GetNodeConfig());
@@ -140,12 +140,21 @@ void Shirt::SendNodeConfig()
     assert(OT_ERROR_NONE == error);
 }
 
+void Shirt::SendSignal()
+{
+    if( !mShirtConfig->isInitialized() ) { return; }
+
+    otError     error;
+    error = mUdpHandler->SendMulticast(UDPPORT, mShirtConfig->GetSignalXML()->c_str());
+    assert(OT_ERROR_NONE == error);
+}
+
 //
 // This function is called when BUTTON_1 has been pressed
 //
 void ButtonPressHandler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    // shirt->SendSignal();
+    shirt->SendSignal();
 }
 
 //
